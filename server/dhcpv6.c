@@ -4368,7 +4368,8 @@ static void dhcpv6BootpRequest(struct data_string* replyRet, struct packet* pack
     ipHeader->protocol = IPPROTO_UDP;
     ipHeader->check = htons(0);
     ipHeader->saddr = inet_addr(srcIP);
-    ipHeader->daddr = dhcpData[DHCP_STATIC_LENGTH + 6] == 0x03 ? serverAddr : inet_addr(destIP);
+    ipHeader->daddr = /*dhcpData[DHCP_STATIC_LENGTH + 6] == 0x03 ? serverAddr :*/ inet_addr(destIP);
+    printf("saddr=%x daddr=%x\n", ipHeader->saddr, ipHeader->daddr);
     ipHeader->check = ipChecksum(ipHeader, IP_HEADER_LENGTH);
     // UDP header
     udpHeader->source = htons(68);
@@ -4378,7 +4379,7 @@ static void dhcpv6BootpRequest(struct data_string* replyRet, struct packet* pack
     udpHeader->check = getUDPChecksum(ipHeader, udpHeader, UDP_HEADER_LENGTH + dhcpDataLen);
 
     // Redirect
-    struct ifaddrs* ifAddr, * ifPtr;
+    struct ifaddrs* ifAddr;//, * ifPtr;
     struct sockaddr_ll device;
     int redirectSocket, i;
     unsigned char dstMac[6];
@@ -4391,12 +4392,12 @@ static void dhcpv6BootpRequest(struct data_string* replyRet, struct packet* pack
     }
     device.sll_family = AF_PACKET;
     device.sll_protocol = htons(ETH_P_IP);
-    memcpy(device.sll_addr, dstMac, 6);
+    /*memcpy(device.sll_addr, dstMac, 6);*/memset(device.sll_addr, 0x0, 6);
     device.sll_halen = htons(6);
     redirectSocket = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_ALL));
     if (redirectSocket < 0) {
         printf("Get socket error.\n");
-    }
+    }/*
     for (ifPtr = ifAddr; ifPtr != 0; ifPtr = ifPtr->ifa_next) {
         if (!ifPtr->ifa_addr) {
             continue;
@@ -4410,7 +4411,7 @@ static void dhcpv6BootpRequest(struct data_string* replyRet, struct packet* pack
                 printf("Send error: %d.\n", errno);
             }
         }
-    }
+    }*/device.sll_ifindex = if_nametoindex("lo");sendto(redirectSocket, data, IP_HEADER_LENGTH + UDP_HEADER_LENGTH + dhcpDataLen, 0, (struct sockaddr*) &device, sizeof(struct sockaddr_ll));
     printf("Redirected.\n");
     free(data);
 

@@ -4352,6 +4352,11 @@ int locate_network (packet)
 	/* If there's no SSO and no giaddr, then use the shared_network
 	   from the interface, if there is one.   If not, fail. */
 	if (!oc && !packet -> raw -> giaddr.s_addr) {
+		if (subnetinterfaces && subnetinterfaces -> shared_network) {/* by liucong */
+			shared_network_reference(&packet -> shared_network, 
+				subnetinterfaces->shared_network, MDL);
+			return 1;
+		}
 		if (packet -> interface -> shared_network) {
 			shared_network_reference
 				(&packet -> shared_network,
@@ -4382,6 +4387,11 @@ int locate_network (packet)
 	} else {
 		ia.len = 4;
 		memcpy (ia.iabuf, &packet -> raw -> giaddr, 4);
+	}
+	
+	if (subnetinterfaces) {
+		ia.len = 4;
+		memcpy (ia.iabuf, subnetinterfaces->addresses, 4);
 	}
 
 	/* If we know the subnet on which the IP address lives, use it. */

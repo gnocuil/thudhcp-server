@@ -2557,6 +2557,7 @@ void maybe_setup_fallback (void);
 /* discover.c */
 extern struct interface_info *interfaces,
 	*dummy_interfaces, *fallback_interface;
+extern struct interface_info *subnetinterfaces;/* by liucong */
 extern struct protocol *protocols;
 extern int quiet_interface_discovery;
 isc_result_t interface_setup (void);

@@ -54,7 +54,7 @@ static const char url [] =
 #  include <pwd.h>
 /* get around the ISC declaration of group */
 #  define group real_group 
-#    include <grp.h>
+#	include <grp.h>
 #  undef group
 #endif /* PARANOIA */
 
@@ -70,90 +70,90 @@ int server_identifier_matched;
 /* This stuff is always executed to figure the default values for certain
    ddns variables. */
 
-char std_nsupdate [] = "						    \n\
-option server.ddns-hostname =						    \n\
-  pick (option fqdn.hostname, option host-name);			    \n\
-option server.ddns-domainname =	config-option domain-name;		    \n\
+char std_nsupdate [] = "							\n\
+option server.ddns-hostname =							\n\
+  pick (option fqdn.hostname, option host-name);				\n\
+option server.ddns-domainname =	config-option domain-name;			\n\
 option server.ddns-rev-domainname = \"in-addr.arpa.\";";
 
 /* This is the old-style name service updater that is executed
    whenever a lease is committed.  It does not follow the DHCP-DNS
    draft at all. */
 
-char old_nsupdate [] = "						    \n\
-on commit {								    \n\
-  if (not static and							    \n\
-      ((config-option server.ddns-updates = null) or			    \n\
-       (config-option server.ddns-updates != 0))) {			    \n\
-    set new-ddns-fwd-name =						    \n\
-      concat (pick (config-option server.ddns-hostname,			    \n\
-		    option host-name), \".\",				    \n\
-	      pick (config-option server.ddns-domainname,		    \n\
-		    config-option domain-name));			    \n\
-    if (defined (ddns-fwd-name) and ddns-fwd-name != new-ddns-fwd-name) {   \n\
-      switch (ns-update (delete (IN, A, ddns-fwd-name, leased-address))) {  \n\
-      case NOERROR:							    \n\
-	unset ddns-fwd-name;						    \n\
-	on expiry or release {						    \n\
-	}								    \n\
-      }									    \n\
-    }									    \n\
-									    \n\
-    if (not defined (ddns-fwd-name)) {					    \n\
-      set ddns-fwd-name = new-ddns-fwd-name;				    \n\
-      if defined (ddns-fwd-name) {					    \n\
-	switch (ns-update (not exists (IN, A, ddns-fwd-name, null),	    \n\
-			   add (IN, A, ddns-fwd-name, leased-address,	    \n\
-				lease-time / 2))) {			    \n\
-	default:							    \n\
-	  unset ddns-fwd-name;						    \n\
-	  break;							    \n\
-									    \n\
-	case NOERROR:							    \n\
-	  set ddns-rev-name =						    \n\
-	    concat (binary-to-ascii (10, 8, \".\",			    \n\
-				     reverse (1,			    \n\
-					      leased-address)), \".\",	    \n\
-		    pick (config-option server.ddns-rev-domainname,	    \n\
-			  \"in-addr.arpa.\"));				    \n\
-	  switch (ns-update (delete (IN, PTR, ddns-rev-name, null),	    \n\
-			     add (IN, PTR, ddns-rev-name, ddns-fwd-name,    \n\
-				  lease-time / 2)))			    \n\
-	    {								    \n\
-	    default:							    \n\
-	      unset ddns-rev-name;					    \n\
-	      on release or expiry {					    \n\
-		switch (ns-update (delete (IN, A, ddns-fwd-name,	    \n\
-					   leased-address))) {		    \n\
-		case NOERROR:						    \n\
-		  unset ddns-fwd-name;					    \n\
-		  break;						    \n\
-		}							    \n\
-		on release or expiry;					    \n\
-	      }								    \n\
-	      break;							    \n\
-									    \n\
-	    case NOERROR:						    \n\
-	      on release or expiry {					    \n\
+char old_nsupdate [] = "							\n\
+on commit {									\n\
+  if (not static and								\n\
+	  ((config-option server.ddns-updates = null) or				\n\
+	   (config-option server.ddns-updates != 0))) {				\n\
+	set new-ddns-fwd-name =							\n\
+	  concat (pick (config-option server.ddns-hostname,				\n\
+			option host-name), \".\",					\n\
+		  pick (config-option server.ddns-domainname,			\n\
+			config-option domain-name));				\n\
+	if (defined (ddns-fwd-name) and ddns-fwd-name != new-ddns-fwd-name) {   \n\
+	  switch (ns-update (delete (IN, A, ddns-fwd-name, leased-address))) {  \n\
+	  case NOERROR:								\n\
+	unset ddns-fwd-name;							\n\
+	on expiry or release {							\n\
+	}									\n\
+	  }										\n\
+	}										\n\
+										\n\
+	if (not defined (ddns-fwd-name)) {						\n\
+	  set ddns-fwd-name = new-ddns-fwd-name;					\n\
+	  if defined (ddns-fwd-name) {						\n\
+	switch (ns-update (not exists (IN, A, ddns-fwd-name, null),		\n\
+			   add (IN, A, ddns-fwd-name, leased-address,		\n\
+				lease-time / 2))) {				\n\
+	default:								\n\
+	  unset ddns-fwd-name;							\n\
+	  break;								\n\
+										\n\
+	case NOERROR:								\n\
+	  set ddns-rev-name =							\n\
+		concat (binary-to-ascii (10, 8, \".\",				\n\
+					 reverse (1,				\n\
+						  leased-address)), \".\",		\n\
+			pick (config-option server.ddns-rev-domainname,		\n\
+			  \"in-addr.arpa.\"));					\n\
+	  switch (ns-update (delete (IN, PTR, ddns-rev-name, null),		\n\
+				 add (IN, PTR, ddns-rev-name, ddns-fwd-name,	\n\
+				  lease-time / 2)))				\n\
+		{									\n\
+		default:								\n\
+		  unset ddns-rev-name;						\n\
+		  on release or expiry {						\n\
+		switch (ns-update (delete (IN, A, ddns-fwd-name,		\n\
+					   leased-address))) {			\n\
+		case NOERROR:							\n\
+		  unset ddns-fwd-name;						\n\
+		  break;							\n\
+		}								\n\
+		on release or expiry;						\n\
+		  }									\n\
+		  break;								\n\
+										\n\
+		case NOERROR:							\n\
+		  on release or expiry {						\n\
 		switch (ns-update (delete (IN, PTR, ddns-rev-name, null))) {\n\
-		case NOERROR:						    \n\
-		  unset ddns-rev-name;					    \n\
-		  break;						    \n\
-		}							    \n\
-		switch (ns-update (delete (IN, A, ddns-fwd-name,	    \n\
-					   leased-address))) {		    \n\
-		case NOERROR:						    \n\
-		  unset ddns-fwd-name;					    \n\
-		  break;						    \n\
-		}							    \n\
-		on release or expiry;					    \n\
-	      }								    \n\
-	    }								    \n\
-	}								    \n\
-      }									    \n\
-    }									    \n\
-    unset new-ddns-fwd-name;						    \n\
-  }									    \n\
+		case NOERROR:							\n\
+		  unset ddns-rev-name;						\n\
+		  break;							\n\
+		}								\n\
+		switch (ns-update (delete (IN, A, ddns-fwd-name,		\n\
+					   leased-address))) {			\n\
+		case NOERROR:							\n\
+		  unset ddns-fwd-name;						\n\
+		  break;							\n\
+		}								\n\
+		on release or expiry;						\n\
+		  }									\n\
+		}									\n\
+	}									\n\
+	  }										\n\
+	}										\n\
+	unset new-ddns-fwd-name;							\n\
+  }										\n\
 }";
 
 #endif /* NSUPDATE */
@@ -214,14 +214,14 @@ static void omapi_listener_start (void *foo)
 /* to be used in one of two possible scenarios */
 static void setup_chroot (char *chroot_dir) {
   if (geteuid())
-    log_fatal ("you must be root to use chroot");
+	log_fatal ("you must be root to use chroot");
 
   if (chroot(chroot_dir)) {
-    log_fatal ("chroot(\"%s\"): %m", chroot_dir);
+	log_fatal ("chroot(\"%s\"): %m", chroot_dir);
   }
   if (chdir ("/")) {
-    /* probably permission denied */
-    log_fatal ("chdir(\"/\"): %m");
+	/* probably permission denied */
+	log_fatal ("chdir(\"/\"): %m");
   }
 }
 #endif /* PARANOIA */
@@ -269,18 +269,18 @@ main(int argc, char **argv) {
 	gid_t set_gid = 0;
 #endif /* PARANOIA */
 
-        /* Make sure that file descriptors 0 (stdin), 1, (stdout), and
-           2 (stderr) are open. To do this, we assume that when we
-           open a file the lowest available file descriptor is used. */
-        fd = open("/dev/null", O_RDWR);
-        if (fd == 0)
-                fd = open("/dev/null", O_RDWR);
-        if (fd == 1)
-                fd = open("/dev/null", O_RDWR);
-        if (fd == 2)
-                log_perror = 0; /* No sense logging to /dev/null. */
-        else if (fd != -1)
-                close(fd);
+		/* Make sure that file descriptors 0 (stdin), 1, (stdout), and
+		   2 (stderr) are open. To do this, we assume that when we
+		   open a file the lowest available file descriptor is used. */
+		fd = open("/dev/null", O_RDWR);
+		if (fd == 0)
+				fd = open("/dev/null", O_RDWR);
+		if (fd == 1)
+				fd = open("/dev/null", O_RDWR);
+		if (fd == 2)
+				log_perror = 0; /* No sense logging to /dev/null. */
+		else if (fd != -1)
+				close(fd);
 
 	/* Set up the isc and dns library managers */
 	status = dhcp_context_create();
@@ -312,7 +312,7 @@ main(int argc, char **argv) {
 				usage ();
 			local_port = validate_port (argv [i]);
 			log_debug ("binding to user-specified port %d",
-			       ntohs (local_port));
+				   ntohs (local_port));
 		} else if (!strcmp (argv [i], "-f")) {
 #ifndef DEBUG
 			daemon = 0;
@@ -357,14 +357,14 @@ main(int argc, char **argv) {
 			no_dhcpd_pid = 1;
 		} else if (!strcmp(argv[i], "--no-pid")) {
 			no_pid_file = ISC_TRUE;
-                } else if (!strcmp (argv [i], "-t")) {
+				} else if (!strcmp (argv [i], "-t")) {
 			/* test configurations only */
 #ifndef DEBUG
 			daemon = 0;
 #endif
 			cftest = 1;
 			log_perror = -1;
-                } else if (!strcmp (argv [i], "-T")) {
+				} else if (!strcmp (argv [i], "-T")) {
 			/* test configurations and lease file only */
 #ifndef DEBUG
 			daemon = 0;
@@ -391,6 +391,21 @@ main(int argc, char **argv) {
 			local_family = AF_INET6;
 			local_family_set = 1;
 #endif /* DHCPv6 */
+		} else if (!strcmp(argv[i], "-subnetinterface")) {/* by liucong */
+			if (++i == argc)
+				usage();
+			struct interface_info *tmp = (struct interface_info*) 0;
+			if (strlen(argv[i]) >= sizeof(tmp->name))
+				log_fatal("%s: subnetinterface name too long "
+					"(is %ld)",
+					argv[i], (long)strlen(argv[i]));
+			result = interface_allocate (&tmp, MDL);
+			strcpy(tmp->name,argv[i]);
+			if (subnetinterfaces) {
+				interface_reference(&tmp->next, subnetinterfaces, MDL);
+				interface_dereference(&subnetinterfaces, MDL);
+			}
+			interface_reference(&subnetinterfaces, tmp, MDL);
 		} else if (!strcmp (argv [i], "--version")) {
 			log_info("isc-dhcpd-%s", PACKAGE_VERSION);
 			exit (0);
@@ -422,7 +437,7 @@ main(int argc, char **argv) {
 			strcpy (tmp -> name, argv [i]);
 			if (interfaces) {
 				interface_reference (&tmp -> next,
-						     interfaces, MDL);
+							 interfaces, MDL);
 				interface_dereference (&interfaces, MDL);
 			}
 			interface_reference (&interfaces, tmp, MDL);
@@ -435,44 +450,44 @@ main(int argc, char **argv) {
 	}
 
 #ifdef DHCPv6
-        if (local_family == AF_INET6) {
-                /* DHCPv6: override DHCPv4 lease and pid filenames */
-	        if (!no_dhcpd_db) {
-                        if ((s = getenv ("PATH_DHCPD6_DB")))
-		                path_dhcpd_db = s;
-                        else
-		                path_dhcpd_db = _PATH_DHCPD6_DB;
-	        }
-	        if (!no_dhcpd_pid) {
-                        if ((s = getenv ("PATH_DHCPD6_PID")))
-		                path_dhcpd_pid = s;
-                        else
-		                path_dhcpd_pid = _PATH_DHCPD6_PID;
-	        }
-        } else
+		if (local_family == AF_INET6) {
+				/* DHCPv6: override DHCPv4 lease and pid filenames */
+			if (!no_dhcpd_db) {
+						if ((s = getenv ("PATH_DHCPD6_DB")))
+						path_dhcpd_db = s;
+						else
+						path_dhcpd_db = _PATH_DHCPD6_DB;
+			}
+			if (!no_dhcpd_pid) {
+						if ((s = getenv ("PATH_DHCPD6_PID")))
+						path_dhcpd_pid = s;
+						else
+						path_dhcpd_pid = _PATH_DHCPD6_PID;
+			}
+		} else
 #else /* !DHCPv6 */
-        {
-	        if (!no_dhcpd_db && (s = getenv ("PATH_DHCPD_DB"))) {
-		        path_dhcpd_db = s;
-	        }
-	        if (!no_dhcpd_pid && (s = getenv ("PATH_DHCPD_PID"))) {
-		        path_dhcpd_pid = s;
-	        }
-        }
+		{
+			if (!no_dhcpd_db && (s = getenv ("PATH_DHCPD_DB"))) {
+				path_dhcpd_db = s;
+			}
+			if (!no_dhcpd_pid && (s = getenv ("PATH_DHCPD_PID"))) {
+				path_dhcpd_pid = s;
+			}
+		}
 #endif /* DHCPv6 */
 
-        /*
-         * convert relative path names to absolute, for files that need
-         * to be reopened after chdir() has been called
-         */
-        if (path_dhcpd_db[0] != '/') {
-                char *path = dmalloc(PATH_MAX, MDL);
-                if (path == NULL)
-                        log_fatal("No memory for filename\n");
-                path_dhcpd_db = realpath(path_dhcpd_db,  path);
-                if (path_dhcpd_db == NULL)
-                        log_fatal("%s: %s", path, strerror(errno));
-        }
+		/*
+		 * convert relative path names to absolute, for files that need
+		 * to be reopened after chdir() has been called
+		 */
+		if (path_dhcpd_db[0] != '/') {
+				char *path = dmalloc(PATH_MAX, MDL);
+				if (path == NULL)
+						log_fatal("No memory for filename\n");
+				path_dhcpd_db = realpath(path_dhcpd_db,  path);
+				if (path_dhcpd_db == NULL)
+						log_fatal("%s: %s", path, strerror(errno));
+		}
 
 	if (!quiet) {
 		log_info("%s %s", message, PACKAGE_VERSION);
@@ -495,8 +510,8 @@ main(int argc, char **argv) {
 	interface_trace_setup ();
 	parse_trace_setup ();
 	trace_srandom = trace_type_register ("random-seed", (void *)0,
-					     trace_seed_input,
-					     trace_seed_stop, MDL);
+						 trace_seed_input,
+						 trace_seed_stop, MDL);
 	trace_ddns_init();
 #endif
 
@@ -583,7 +598,7 @@ main(int argc, char **argv) {
 	if (server) {
 		if (local_family != AF_INET) {
 			log_fatal("You can only specify address to send "
-			          "replies to when running an IPv4 server.");
+					  "replies to when running an IPv4 server.");
 		}
 		if (!inet_aton (server, &limited_broadcast)) {
 			struct hostent *he;
@@ -633,7 +648,7 @@ main(int argc, char **argv) {
 	/* Set up the standard name service updater routine. */
 	parse = NULL;
 	status = new_parse(&parse, -1, std_nsupdate, sizeof(std_nsupdate) - 1,
-			    "standard name service update routine", 0);
+				"standard name service update routine", 0);
 	if (status != ISC_R_SUCCESS)
 		log_fatal ("can't begin parsing name service updater!");
 
@@ -654,21 +669,21 @@ main(int argc, char **argv) {
 
 #if defined (TRACING)
 	if (traceinfile) {
-	    if (!no_dhcpd_db) {
-		    log_error ("%s", "");
-		    log_error ("** You must specify a lease file with -lf.");
-		    log_error ("   Dhcpd will not overwrite your default");
-		    log_fatal ("   lease file when playing back a trace. **");
-	    }		
-	    trace_file_replay (traceinfile);
+		if (!no_dhcpd_db) {
+			log_error ("%s", "");
+			log_error ("** You must specify a lease file with -lf.");
+			log_error ("   Dhcpd will not overwrite your default");
+			log_fatal ("   lease file when playing back a trace. **");
+		}		
+		trace_file_replay (traceinfile);
 
 #if defined (DEBUG_MEMORY_LEAKAGE) && \
-                defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
-            free_everything ();
-            omapi_print_dmalloc_usage_by_caller (); 
+				defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
+			free_everything ();
+			omapi_print_dmalloc_usage_by_caller (); 
 #endif
 
-	    exit (0);
+		exit (0);
 	}
 #endif
 
@@ -695,7 +710,7 @@ main(int argc, char **argv) {
 	if (set_chroot) setup_chroot (set_chroot);
 #endif /* PARANOIA && !EARLY_CHROOT */
 
-        /* test option should cause an early exit */
+		/* test option should cause an early exit */
  	if (cftest && !lftest) 
  		exit(0);
 
@@ -738,7 +753,7 @@ main(int argc, char **argv) {
 		int junk;
 		memcpy (&junk,
 			&ip -> hw_address.hbuf [ip -> hw_address.hlen -
-					       sizeof seed], sizeof seed);
+						   sizeof seed], sizeof seed);
 		seed += junk;
 	}
 	srandom (seed + cur_time);
@@ -807,7 +822,7 @@ main(int argc, char **argv) {
 				 * it is still running, abort
 				 */
 				if (!pid ||
-				    (pid != getpid() && kill(pid, 0) == 0))
+					(pid != getpid() && kill(pid, 0) == 0))
 					log_fatal("There's already a "
 						  "DHCP server running.");
 			}
@@ -836,18 +851,18 @@ main(int argc, char **argv) {
 		/* Become session leader and get pid... */
 		pid = setsid();
 
-                /* Close standard I/O descriptors. */
-                close(0);
-                close(1);
-                close(2);
+				/* Close standard I/O descriptors. */
+				close(0);
+				close(1);
+				close(2);
 
-                /* Reopen them on /dev/null. */
-                open("/dev/null", O_RDWR);
-                open("/dev/null", O_RDWR);
-                open("/dev/null", O_RDWR);
-                log_perror = 0; /* No sense logging to /dev/null. */
+				/* Reopen them on /dev/null. */
+				open("/dev/null", O_RDWR);
+				open("/dev/null", O_RDWR);
+				open("/dev/null", O_RDWR);
+				log_perror = 0; /* No sense logging to /dev/null. */
 
-       		IGNORE_RET (chdir("/"));
+	   		IGNORE_RET (chdir("/"));
 	}
 #endif /* !DEBUG */
 
@@ -859,7 +874,7 @@ main(int argc, char **argv) {
 #endif
 
 	omapi_set_int_value ((omapi_object_t *)dhcp_control_object,
-			     (omapi_object_t *)0, "state", server_running);
+				 (omapi_object_t *)0, "state", server_running);
 
 	/* Receive packets and dispatch them... */
 	dispatch ();
@@ -885,17 +900,17 @@ void postconf_initialization (int quiet)
 	option_state_allocate (&options, MDL);
 
 	execute_statements_in_scope ((struct binding_value **)0,
-				     (struct packet *)0,
-				     (struct lease *)0,
-				     (struct client_state *)0,
-				     (struct option_state *)0,
-				     options, &global_scope,
-				     root_group,
-				     (struct group *)0);
+					 (struct packet *)0,
+					 (struct lease *)0,
+					 (struct client_state *)0,
+					 (struct option_state *)0,
+					 options, &global_scope,
+					 root_group,
+					 (struct group *)0);
 	memset (&db, 0, sizeof db);
 	oc = lookup_option (&server_universe, options, SV_LEASE_FILE_NAME);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
@@ -910,7 +925,7 @@ void postconf_initialization (int quiet)
 
 	oc = lookup_option (&server_universe, options, SV_PID_FILE_NAME);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
@@ -924,47 +939,47 @@ void postconf_initialization (int quiet)
 	}
 
 #ifdef DHCPv6
-        if (local_family == AF_INET6) {
-                /*
-                 * Override lease file name with dhcpv6 lease file name,
-                 * if it was set; then, do the same with the pid file name
-                 */
-                oc = lookup_option(&server_universe, options,
-                                   SV_DHCPV6_LEASE_FILE_NAME);
-                if (oc &&
-                    evaluate_option_cache(&db, NULL, NULL, NULL,
-				          options, NULL, &global_scope,
-                                          oc, MDL)) {
-                        s = dmalloc (db.len + 1, MDL);
-                        if (!s)
-                                log_fatal ("no memory for lease db filename.");
-                        memcpy (s, db.data, db.len);
-                        s [db.len] = 0;
-                        data_string_forget (&db, MDL);
-                        path_dhcpd_db = s;
-                }
+		if (local_family == AF_INET6) {
+				/*
+				 * Override lease file name with dhcpv6 lease file name,
+				 * if it was set; then, do the same with the pid file name
+				 */
+				oc = lookup_option(&server_universe, options,
+								   SV_DHCPV6_LEASE_FILE_NAME);
+				if (oc &&
+					evaluate_option_cache(&db, NULL, NULL, NULL,
+						  options, NULL, &global_scope,
+										  oc, MDL)) {
+						s = dmalloc (db.len + 1, MDL);
+						if (!s)
+								log_fatal ("no memory for lease db filename.");
+						memcpy (s, db.data, db.len);
+						s [db.len] = 0;
+						data_string_forget (&db, MDL);
+						path_dhcpd_db = s;
+				}
 
-                oc = lookup_option(&server_universe, options,
-                                   SV_DHCPV6_PID_FILE_NAME);
-                if (oc &&
-                    evaluate_option_cache(&db, NULL, NULL, NULL,
-				          options, NULL, &global_scope,
-                                          oc, MDL)) {
-                        s = dmalloc (db.len + 1, MDL);
-                        if (!s)
-                                log_fatal ("no memory for pid filename.");
-                        memcpy (s, db.data, db.len);
-                        s [db.len] = 0;
-                        data_string_forget (&db, MDL);
-                        path_dhcpd_pid = s;
-                }
-        }
+				oc = lookup_option(&server_universe, options,
+								   SV_DHCPV6_PID_FILE_NAME);
+				if (oc &&
+					evaluate_option_cache(&db, NULL, NULL, NULL,
+						  options, NULL, &global_scope,
+										  oc, MDL)) {
+						s = dmalloc (db.len + 1, MDL);
+						if (!s)
+								log_fatal ("no memory for pid filename.");
+						memcpy (s, db.data, db.len);
+						s [db.len] = 0;
+						data_string_forget (&db, MDL);
+						path_dhcpd_pid = s;
+				}
+		}
 #endif /* DHCPv6 */
 
 	omapi_port = -1;
 	oc = lookup_option (&server_universe, options, SV_OMAPI_PORT);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
@@ -977,7 +992,7 @@ void postconf_initialization (int quiet)
 
 	oc = lookup_option (&server_universe, options, SV_OMAPI_KEY);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options,
 				   (struct option_state *)0,
@@ -997,7 +1012,7 @@ void postconf_initialization (int quiet)
 
 	oc = lookup_option (&server_universe, options, SV_LOCAL_PORT);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options,
 				   (struct option_state *)0,
@@ -1011,7 +1026,7 @@ void postconf_initialization (int quiet)
 
 	oc = lookup_option (&server_universe, options, SV_REMOTE_PORT);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
@@ -1023,9 +1038,9 @@ void postconf_initialization (int quiet)
 	}
 
 	oc = lookup_option (&server_universe, options,
-			    SV_LIMITED_BROADCAST_ADDRESS);
+				SV_LIMITED_BROADCAST_ADDRESS);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
@@ -1037,9 +1052,9 @@ void postconf_initialization (int quiet)
 	}
 
 	oc = lookup_option (&server_universe, options,
-			    SV_LOCAL_ADDRESS);
+				SV_LOCAL_ADDRESS);
 	if (oc &&
-	    evaluate_option_cache (&db, (struct packet *)0,
+		evaluate_option_cache (&db, (struct packet *)0,
 				   (struct lease *)0, (struct client_state *)0,
 				   options, (struct option_state *)0,
 				   &global_scope, oc, MDL)) {
@@ -1111,7 +1126,7 @@ void postconf_initialization (int quiet)
 	
 	oc = lookup_option(&server_universe, options, SV_DELAYED_ACK);
 	if (oc &&
-	    evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
+		evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
 				  &global_scope, oc, MDL)) {
 		if (db.len == 2) {
 			max_outstanding_acks = htons(getUShort(db.data));
@@ -1123,7 +1138,7 @@ void postconf_initialization (int quiet)
 
 	oc = lookup_option(&server_universe, options, SV_MAX_ACK_DELAY);
 	if (oc &&
-	    evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
+		evaluate_option_cache(&db, NULL, NULL, NULL, options, NULL,
 				  &global_scope, oc, MDL)) {
 		u_int32_t timeval;
 
@@ -1212,20 +1227,20 @@ usage(void) {
 
 	log_fatal("Usage: dhcpd [-p <UDP port #>] [-f] [-d] [-q] [-t|-T]\n"
 #ifdef DHCPv6
-		  "             [-4|-6] [-cf config-file] [-lf lease-file]\n"
+		  "			 [-4|-6] [-cf config-file] [-lf lease-file]\n"
 #else /* !DHCPv6 */
-		  "             [-cf config-file] [-lf lease-file]\n"
+		  "			 [-cf config-file] [-lf lease-file]\n"
 #endif /* DHCPv6 */
 #if defined (PARANOIA)
 		   /* meld into the following string */
-		  "             [-user user] [-group group] [-chroot dir]\n"
+		  "			 [-user user] [-group group] [-chroot dir]\n"
 #endif /* PARANOIA */
 #if defined (TRACING)
-		  "             [-tf trace-output-file]\n"
-		  "             [-play trace-input-file]\n"
+		  "			 [-tf trace-output-file]\n"
+		  "			 [-play trace-input-file]\n"
 #endif /* TRACING */
-		  "             [-pf pid-file] [--no-pid] [-s server]\n"
-		  "             [if0 [...ifN]]");
+		  "			 [-pf pid-file] [--no-pid] [-s server]\n"
+		  "			 [if0 [...ifN]]");
 }
 #endif
 
@@ -1253,7 +1268,7 @@ void lease_pinged (from, packet, length)
 	if (!lp -> state) {
 #if defined (FAILOVER_PROTOCOL)
 		if (!lp -> pool ||
-		    !lp -> pool -> failover_peer)
+			!lp -> pool -> failover_peer)
 #endif
 			log_debug ("ICMP Echo Reply for %s late or spurious.",
 				   piaddr (from));
@@ -1274,7 +1289,7 @@ void lease_pinged (from, packet, length)
 	abandon_lease (lp, "pinged before offer");
 	cancel_timeout (lease_ping_timeout, lp);
 	--outstanding_pings;
-      out:
+	  out:
 	lease_dereference (&lp, MDL);
 }
 
@@ -1336,7 +1351,7 @@ int dhcpd_interface_setup_hook (struct interface_info *ip, struct iaddr *ia)
 		}
 		share = subnet -> shared_network;
 		if (ip -> shared_network &&
-		    ip -> shared_network != share) {
+			ip -> shared_network != share) {
 			log_fatal ("Interface %s matches multiple shared %s",
 				   ip -> name, "networks");
 		} else {
@@ -1365,17 +1380,17 @@ isc_result_t dhcp_io_shutdown (omapi_object_t *obj, void *foo)
 {
 	/* Shut down all listeners. */
 	if (shutdown_state == shutdown_listeners &&
-	    obj -> type == omapi_type_listener &&
-	    obj -> inner &&
-	    obj -> inner -> type == omapi_type_protocol_listener) {
+		obj -> type == omapi_type_listener &&
+		obj -> inner &&
+		obj -> inner -> type == omapi_type_protocol_listener) {
 		omapi_listener_destroy (obj, MDL);
 		return ISC_R_SUCCESS;
 	}
 
 	/* Shut down all existing omapi connections. */
 	if (obj -> type == omapi_type_connection &&
-	    obj -> inner &&
-	    obj -> inner -> type == omapi_type_protocol) {
+		obj -> inner &&
+		obj -> inner -> type == omapi_type_protocol) {
 		if (shutdown_state == shutdown_drop_omapi_connections) {
 			omapi_disconnect (obj, 1);
 		}
@@ -1388,7 +1403,7 @@ isc_result_t dhcp_io_shutdown (omapi_object_t *obj, void *foo)
 
 	/* Shutdown all DHCP interfaces. */
 	if (obj -> type == dhcp_type_interface &&
-	    shutdown_state == shutdown_dhcp) {
+		shutdown_state == shutdown_dhcp) {
 		dhcp_interface_remove (obj, (omapi_object_t *)0);
 		return ISC_R_SUCCESS;
 	}
@@ -1403,19 +1418,19 @@ static isc_result_t dhcp_io_shutdown_countdown (void *vlp)
 #endif
 	struct timeval tv;
 
-      oncemore:
+	  oncemore:
 	if (shutdown_state == shutdown_listeners ||
-	    shutdown_state == shutdown_omapi_connections ||
-	    shutdown_state == shutdown_drop_omapi_connections ||
-	    shutdown_state == shutdown_dhcp) {
+		shutdown_state == shutdown_omapi_connections ||
+		shutdown_state == shutdown_drop_omapi_connections ||
+		shutdown_state == shutdown_dhcp) {
 		omapi_connection_count = 0;
 		omapi_io_state_foreach (dhcp_io_shutdown, 0);
 	}
 
 	if ((shutdown_state == shutdown_listeners ||
-	     shutdown_state == shutdown_omapi_connections ||
-	     shutdown_state == shutdown_drop_omapi_connections) &&
-	    omapi_connection_count == 0) {
+		 shutdown_state == shutdown_omapi_connections ||
+		 shutdown_state == shutdown_drop_omapi_connections) &&
+		omapi_connection_count == 0) {
 		shutdown_state = shutdown_dhcp;
 		shutdown_time = cur_time;
 		goto oncemore;
@@ -1441,32 +1456,32 @@ static isc_result_t dhcp_io_shutdown_countdown (void *vlp)
 #if defined (FAILOVER_PROTOCOL)
 	/* Set all failover peers into the shutdown state. */
 	if (shutdown_state == shutdown_dhcp) {
-	    for (state = failover_states; state; state = state -> next) {
+		for (state = failover_states; state; state = state -> next) {
 		if (state -> me.state == normal) {
-		    dhcp_failover_set_state (state, shut_down);
-		    failover_connection_count++;
+			dhcp_failover_set_state (state, shut_down);
+			failover_connection_count++;
 		}
 		if (state -> me.state == shut_down &&
-		    state -> partner.state != partner_down)
+			state -> partner.state != partner_down)
 			failover_connection_count++;
-	    }
+		}
 	}
 
 	if (shutdown_state == shutdown_done) {
-	    for (state = failover_states; state; state = state -> next) {
+		for (state = failover_states; state; state = state -> next) {
 		if (state -> me.state == shut_down) {
-		    if (state -> link_to_peer)
+			if (state -> link_to_peer)
 			dhcp_failover_link_dereference (&state -> link_to_peer,
 							MDL);
-		    dhcp_failover_set_state (state, recover);
+			dhcp_failover_set_state (state, recover);
 		}
-	    }
+		}
 #if defined (DEBUG_MEMORY_LEAKAGE) && \
 		defined (DEBUG_MEMORY_LEAKAGE_ON_EXIT)
-	    free_everything ();
-	    omapi_print_dmalloc_usage_by_caller ();
+		free_everything ();
+		omapi_print_dmalloc_usage_by_caller ();
 #endif
-	    exit (0);
+		exit (0);
 	}		
 #else
 	if (shutdown_state == shutdown_done) {
@@ -1480,9 +1495,9 @@ static isc_result_t dhcp_io_shutdown_countdown (void *vlp)
 #endif
 	if (shutdown_state == shutdown_dhcp &&
 #if defined(FAILOVER_PROTOCOL)
-	    !failover_connection_count &&
+		!failover_connection_count &&
 #endif
-	    ISC_TRUE) {
+		ISC_TRUE) {
 		shutdown_state = shutdown_done;
 		shutdown_time = cur_time;
 		goto oncemore;
@@ -1490,12 +1505,12 @@ static isc_result_t dhcp_io_shutdown_countdown (void *vlp)
 	tv.tv_sec = cur_tv.tv_sec + 1;
 	tv.tv_usec = cur_tv.tv_usec;
 	add_timeout (&tv,
-		     (void (*)(void *))dhcp_io_shutdown_countdown, 0, 0, 0);
+			 (void (*)(void *))dhcp_io_shutdown_countdown, 0, 0, 0);
 	return ISC_R_SUCCESS;
 }
 
 isc_result_t dhcp_set_control_state (control_object_state_t oldstate,
-				     control_object_state_t newstate)
+					 control_object_state_t newstate)
 {
 	if (newstate == server_shutdown) {
 		shutdown_time = cur_time;

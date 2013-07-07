@@ -42,6 +42,7 @@
 # include <net/if6.h>
 #endif
 
+struct interface_info *subnetinterfaces;/* by liucong */
 struct interface_info *interfaces, *dummy_interfaces, *fallback_interface;
 int interfaces_invalidated;
 int quiet_interface_discovery;
@@ -1004,7 +1005,8 @@ discover_interfaces(int state) {
 		    (local_family == AF_INET)) {
 			struct sockaddr_in *a = (struct sockaddr_in*)&info.addr;
 			struct iaddr addr;
-
+			int subnetiface = strcmp(info.name, subnetinterfaces->name);/* by liucong */
+#define TMP (subnetiface ? tmp : subnetinterfaces)
 			/* We don't want the loopback interface. */
 			if (a->sin_addr.s_addr == htonl(INADDR_LOOPBACK) &&
 			    ((tmp->flags & INTERFACE_AUTOMATIC) &&
@@ -1014,15 +1016,15 @@ discover_interfaces(int state) {
 			/* If the only address we have is 0.0.0.0, we
 			   shouldn't consider the interface configured. */
 			if (a->sin_addr.s_addr != htonl(INADDR_ANY))
-				tmp->configured = 1;
+				TMP->configured = 1;
 
-			add_ipv4_addr_to_interface(tmp, &a->sin_addr);
+			add_ipv4_addr_to_interface(TMP, &a->sin_addr);
 
 			/* invoke the setup hook */
 			addr.len = 4;
 			memcpy(addr.iabuf, &a->sin_addr.s_addr, addr.len);
 			if (dhcp_interface_setup_hook) {
-				(*dhcp_interface_setup_hook)(tmp, &addr);
+				(*dhcp_interface_setup_hook)(TMP, &addr);
 			}
 		}
 #ifdef DHCPv6
@@ -1377,7 +1379,7 @@ void reinitialize_interfaces ()
 
 isc_result_t got_one (h)
 	omapi_object_t *h;
-{
+{puts("got_one!!!");
 	struct sockaddr_in from;
 	struct hardware hfrom;
 	struct iaddr ifrom;
